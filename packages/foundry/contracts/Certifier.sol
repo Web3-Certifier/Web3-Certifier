@@ -229,22 +229,23 @@ contract Certifier is Initializable, UUPSUpgradeable, OwnableUpgradeable, ICerti
         s_userToHashedAnswers[msg.sender][examId] = hashedAnswer;
         s_examIdToExam[examId].users.push(msg.sender);
 
-        if (block.chainid == 42220) {
-            try IEngagementRewards(0x25db74CF4E7BA120526fd87e159CF656d94bAE43).appClaim(
-                msg.sender,
-                inviter,
-                validUntilBlock,
-                signature
-            ) returns (bool success) {
-                if (!success) {
-                    emit EngagementRewardClaimFailed("Claim returned false");
-                }
-            } catch Error(string memory reason) {
-                emit EngagementRewardClaimFailed(reason);
-            } catch {
-                emit EngagementRewardClaimFailed("unknown error");
-            }
-        }
+        /// temporarily remove, will add it on the NFT claim stage only for users that passed the exam
+        // if (block.chainid == 42220) {
+        //     try IEngagementRewards(0x25db74CF4E7BA120526fd87e159CF656d94bAE43).appClaim(
+        //         msg.sender,
+        //         inviter,
+        //         validUntilBlock,
+        //         signature
+        //     ) returns (bool success) {
+        //         if (!success) {
+        //             emit EngagementRewardClaimFailed("Claim returned false");
+        //         }
+        //     } catch Error(string memory reason) {
+        //         emit EngagementRewardClaimFailed(reason);
+        //     } catch {
+        //         emit EngagementRewardClaimFailed("unknown error");
+        //     }
+        // }
 
         emit SubmitAnswers(msg.sender, examId, hashedAnswer);
     }
