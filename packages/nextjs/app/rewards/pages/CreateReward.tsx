@@ -43,6 +43,18 @@ const CreateReward = ({id}: {id: bigint}) => {
         functionName: "decimals",
     }).data;
 
+    const tokenName: string  = wagmiReadFromContract({
+        contractName: "ERC20",
+        contractAddress: tokenAddress,
+        functionName: "name",
+    }).data;
+
+    const tokenSymbol: string  = wagmiReadFromContract({
+        contractName: "ERC20",
+        contractAddress: tokenAddress,
+        functionName: "symbol",
+    }).data;
+
     /*//////////////////////////////////////////////////////////////
                            WRITE TO CONTRACT
     //////////////////////////////////////////////////////////////*/
@@ -86,6 +98,7 @@ const CreateReward = ({id}: {id: bigint}) => {
                 <Box mt="6" fontSize="xl" fontWeight="bold">💰 Set Up Reward</Box>
                 <Box mt="2" fontSize="md">Set up reward parameters.</Box>
 
+                {/* Token Address */}
                <><label className={`${labelMarginAndPadding}`}>Token Address *</label>
                 <Input
                     value={tokenAddress}
@@ -95,6 +108,9 @@ const CreateReward = ({id}: {id: bigint}) => {
                         setTokenAddress(e.target.value);
                     }}
                 /></>
+                <Box fontSize="sm">
+                    {tokenName && tokenSymbol ? tokenName+" (" + tokenSymbol + ")" : "Invalid Token Address"}
+                </Box>
                 
                 {/* Distribution Type */}
                 <label className={`${labelMarginAndPadding}`}>Distribution Type</label>
