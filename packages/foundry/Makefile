@@ -13,6 +13,10 @@ fork-sepolia:
 fork-celo:
 	forge test --fork-url celo -vv --via-ir
 
+# Test both with sepolia and celo forks
+fork-both:
+	make fork-sepolia && make fork-celo
+
 # Test Xp Prizes
 test-xp-prizes:
 	forge test --mc XpPrizesTest --via-ir
