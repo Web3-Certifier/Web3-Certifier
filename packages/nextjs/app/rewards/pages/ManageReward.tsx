@@ -12,6 +12,7 @@ import { RewardInfoDropDown } from '~~/app/exam_page/_components';
 import { Box } from '@chakra-ui/react';
 import getTimeLeft from '~~/utils/GetTimeLeft';
 import { winnerHasBeenDrawn } from '~~/utils/winnerHasBeenDrawn';
+import { GOODDOLLAR_TOKEN_ADDRESS } from '~~/constants';
 
 const ManageReward = ({id}: {id: bigint}) => {
     const { address, chain } = useNonUndefinedAccount();
@@ -34,6 +35,12 @@ const ManageReward = ({id}: {id: bigint}) => {
         contractName: "Reward",
         contractAddress: rewardAddress,
         functionName: "getRewardToken",
+    }).data;
+
+    const fee = wagmiReadFromContract({
+        contractName: "RewardFactory",
+        functionName: "getFee",
+        args: [rewardToken],
     }).data;
 
     const distributionTypeNumber: number  = wagmiReadFromContract({
@@ -65,13 +72,6 @@ const ManageReward = ({id}: {id: bigint}) => {
         contractName: "Reward",
         contractAddress: rewardAddress,
         functionName: "timeToExecuteDrawPassed",
-    }).data;
-
-    const winnerHasClaimed = wagmiReadFromContract({
-        contractName: "Reward",
-        contractAddress: rewardAddress,
-        functionName: "getUserHasClaimed",
-        args: [usersThatClaimed ? usersThatClaimed[usersThatClaimed.length-1] : false],
     }).data;
 
     const allowance: bigint  = wagmiReadFromContract({
@@ -125,15 +125,13 @@ const ManageReward = ({id}: {id: bigint}) => {
         try {
             setLoadingState('fund', true);
             const scaledFundAmount = Number(fundAmount) * (Number(10) ** Number(decimals));
-            if (allowance < scaledFundAmount)
+            const scaledFundAmountWithFee = scaledFundAmount * (1e18 + Number(fee)) / 1e18;
+            if (allowance < scaledFundAmountWithFee)
                 await approve({
                     contractName: 'ERC20',
                     contractAddress: rewardToken,
                     functionName: 'approve',
-                    args: [
-                        rewardAddress,
-                        BigInt(scaledFundAmount),
-                    ],
+                    args: [rewardAddress, BigInt(scaledFundAmountWithFee)],
                     onSuccess: () => {
                         // do nothing
                     }
@@ -143,9 +141,7 @@ const ManageReward = ({id}: {id: bigint}) => {
                 contractName: 'Reward',
                 contractAddress: rewardAddress,
                 functionName: 'fund',
-                args: [
-                    BigInt(scaledFundAmount)
-                ],
+                args: [scaledFundAmount],
             });
             setFundAmount(BigInt(0));
         } finally {
@@ -289,7 +285,10 @@ const ManageReward = ({id}: {id: bigint}) => {
                         💎 Fund Reward Pool
                     </span>
                 </LoadingButton>
-                {chain?.id === 42220 && <BuyGoodDollarTokensMessage />}
+                <Box my="4" px="4" w="fit" bgColor="secondary" borderRadius="full" border="1px">
+                    <Box display="inline" mr="2">𝒊</Box> {fee ? `Fee: ${Number(fee) / 1e16}%. Use G$ if you want 0% fee.` :  `No deposit fee for this token.`}
+                </Box>
+                {rewardToken === GOODDOLLAR_TOKEN_ADDRESS && chain?.id === 42220 && <BuyGoodDollarTokensMessage />}
             </ActionCard>
 
             {/* Set Distribution Parameter */}

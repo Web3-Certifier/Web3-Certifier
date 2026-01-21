@@ -51,7 +51,7 @@ const CreateReward = ({id}: {id: bigint}) => {
     async function handleCreateReward() {
         const formattedDistributionParameter = distributionType == DistributionType.DRAW
             ? BigInt(new Date(distributionParameter).getTime() / 1000)  // get unix timestamp in seconds
-            : BigInt(distributionParameter) * (BigInt(10) ** BigInt(decimals));  // add 18 decimals
+            : BigInt(Number(distributionParameter) * 10 ** Number(decimals));  // add 18 decimals
 
         createReward({
             contractName: 'RewardFactory',
@@ -86,7 +86,7 @@ const CreateReward = ({id}: {id: bigint}) => {
                 <Box mt="6" fontSize="xl" fontWeight="bold">💰 Set Up Reward</Box>
                 <Box mt="2" fontSize="md">Set up reward parameters.</Box>
 
-                {chain?.id !== 42220 ? <><label className={`${labelMarginAndPadding}`}>Token Address *</label>
+               <><label className={`${labelMarginAndPadding}`}>Token Address *</label>
                 <Input
                     value={tokenAddress}
                     type="text"
@@ -95,7 +95,6 @@ const CreateReward = ({id}: {id: bigint}) => {
                         setTokenAddress(e.target.value);
                     }}
                 /></>
-                : <Heading fontSize="lg" fontWeight={"bold"} my={8}>Reward users with G$ tokens!</Heading>}
                 
                 {/* Distribution Type */}
                 <label className={`${labelMarginAndPadding}`}>Distribution Type</label>
