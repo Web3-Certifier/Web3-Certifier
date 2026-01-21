@@ -24,6 +24,7 @@ contract CertifierTest is Test {
     uint256 constant ORG_INITIAL_BALANCE = 1000 ether;
     uint256 constant INITIAL_TOKEN_SUPPLY = 1000 ether;
     uint256 constant REWARD_FUND_AMOUNT = 1 ether;
+    address constant GOODDOLLAR_TOKEN_ADDRESS = 0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A;
     string[] public examQuestions;
 
     address user = makeAddr("user");
@@ -46,6 +47,11 @@ contract CertifierTest is Test {
     }
 
     function setUp() public {
+        // Clear bytecode from user addresses to make them EOAs (not contracts)
+        // This is needed because _safeMint calls onERC721Received on contract recipients
+        vm.etch(user, "");
+        vm.etch(user2, "");
+
         (deployer, deployerKey) = makeAddrAndKey("deployer");
         vm.startPrank(deployer);
 
@@ -302,21 +308,21 @@ contract CertifierTest is Test {
         certifier.submitAnswers{value: submissionFeeInEth}(examId, hashedAnswer, address(0), 0, "0x");
     }
 
-    function _testUsername() public notCelo {
-        vm.prank(user);
-        certifier.setUsername("username", 0, "0x");
-        assert(keccak256(abi.encode("username")) == keccak256(abi.encode(certifier.getUsername(user))));
+    // function _testUsername() public notCelo {
+    //     vm.prank(user);
+    //     certifier.setUsername("username", 0, "0x");
+    //     assert(keccak256(abi.encode("username")) == keccak256(abi.encode(certifier.getUsername(user))));
 
-        vm.prank(deployer);
-        certifier.setRequiresSignature(true);
+    //     vm.prank(deployer);
+    //     certifier.setRequiresSignature(true);
 
-        vm.expectRevert();
-        vm.prank(user);
-        certifier.setUsername("username2", 0, "0x");
+    //     vm.expectRevert();
+    //     vm.prank(user);
+    //     certifier.setUsername("username2", 0, "0x");
 
-        vm.prank(user);
-        certifier.setUsername("username2", 0, signTokenNum("username2", 0, user));
-    }
+    //     vm.prank(user);
+    //     certifier.setUsername("username2", 0, signTokenNum("username2", 0, user));
+    // }
 
     function _testVerifiedExamCreationAndSubmission() public onlyCelo {
         // Unverified creates exam
