@@ -41,6 +41,7 @@ contract RewardFactory is Initializable, UUPSUpgradeable, OwnableUpgradeable, Re
     address private i_certifierContractAddress; // certifier contract address
     address[] private s_rewards;
     mapping(uint256 examId => address reward) private s_examIdToReward;
+    uint256 private s_fee;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -100,6 +101,10 @@ contract RewardFactory is Initializable, UUPSUpgradeable, OwnableUpgradeable, Re
         emit RemoveReward(examId);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                                GETTERS
+    //////////////////////////////////////////////////////////////*/
+
     function getCertifierContractAddress() external view returns (address) {
         return i_certifierContractAddress;
     }
@@ -114,6 +119,25 @@ contract RewardFactory is Initializable, UUPSUpgradeable, OwnableUpgradeable, Re
 
     function getRewardByExamId(uint256 examId) external view returns (address) {
         return s_examIdToReward[examId];
+    }
+
+    function getFee(address token) external view returns (uint256) {
+        // GoodDollar token is free to use as a reward token
+        address[] memory tokensWithoutFees = new address[](1);
+        tokensWithoutFees[0] = 0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A;
+        for (uint256 i = 0; i < tokensWithoutFees.length; i++) {
+            if (token == tokensWithoutFees[i]) return 0;
+        }
+        return s_fee;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                                SETTERS
+    //////////////////////////////////////////////////////////////*/
+
+    function setFee(uint256 fee) external onlyOwner {
+        if (fee < 0.0001e18 || fee > 1e18) revert();
+        s_fee = fee;
     }
 
     /*//////////////////////////////////////////////////////////////

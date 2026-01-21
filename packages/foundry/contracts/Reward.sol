@@ -30,6 +30,7 @@ contract Reward is Ownable, ReentrancyGuard {
     error Reward__NoParticipants();
     error Reward__CannotDrawYet(uint256 distributionParameter, uint256 currentTime);
     error Reward__NotOwnerOrAdmin(address user, address owner, address admin);
+    error Reward__NotAdmin(address user, address admin);
     /*//////////////////////////////////////////////////////////////
                             STATE VARIABLES
     //////////////////////////////////////////////////////////////*/
@@ -43,6 +44,7 @@ contract Reward is Ownable, ReentrancyGuard {
     uint256 private s_distributionParameter;
     RewardFactory.EligibilityType private immutable i_eligibilityType;
     address private immutable i_eligibilityParameter;
+    uint256 private s_tokensThatCanBeWithdrawn;
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
@@ -86,14 +88,23 @@ contract Reward is Ownable, ReentrancyGuard {
             revert Reward__NotOwnerOrAdmin(msg.sender, owner(), RewardFactory(i_factory).owner());
         _;
     }
+    modifier onlyAdmin() {
+        if (msg.sender != RewardFactory(i_factory).owner())
+            revert Reward__NotAdmin(msg.sender, RewardFactory(i_factory).owner());
+        _;
+    }
     /*//////////////////////////////////////////////////////////////
                           EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
     /**
      * @notice needs approval for the token
      */ 
-    function fund(uint256 amount) external {
+    function fund(uint256 amount) external nonReentrant {
         IERC20(i_rewardToken).transferFrom(msg.sender, address(this), amount);
+        uint256 feeAmount = amount * RewardFactory(i_factory).getFee(i_rewardToken) / 1e18;
+        if (feeAmount > 0)
+            IERC20(i_rewardToken).transferFrom(msg.sender, RewardFactory(i_factory).owner(), feeAmount);
+        s_tokensThatCanBeWithdrawn += amount;
         emit Reward__Fund(amount);
     }
 
@@ -119,6 +130,7 @@ contract Reward is Ownable, ReentrancyGuard {
         uint256 rewardAmount = rewardAmountForUser(msg.sender);
         // check if the contract has enough reward tokens
         if (rewardTokenBalance() < rewardAmount) revert Reward__NotEnoughRewardTokens(rewardAmount, rewardTokenBalance());
+        s_tokensThatCanBeWithdrawn -= rewardAmount;
         IERC20(i_rewardToken).approve(msg.sender, rewardAmount);
         IERC20(i_rewardToken).transfer(msg.sender, rewardAmount);
         emit Reward__Claim(msg.sender, rewardAmount);
@@ -140,10 +152,21 @@ contract Reward is Ownable, ReentrancyGuard {
     }
 
     function withdraw() external onlyOwnerOrAdmin {
+        if (s_tokensThatCanBeWithdrawn == 0) return;
+        IERC20(i_rewardToken).approve(owner(), s_tokensThatCanBeWithdrawn);
+        IERC20(i_rewardToken).transfer(owner(), s_tokensThatCanBeWithdrawn);
+        s_tokensThatCanBeWithdrawn = 0;
+        emit Reward__Withdraw(s_tokensThatCanBeWithdrawn);
+    }
+
+    // if the admin sponsors the reward or someone transfers tokens directly to the contract bypassing the deposit fee
+    // the admin can withdraw the tokens directly from the contract
+    function withdrawTokensFromDirectTransfers() external onlyAdmin {
         uint256 contractBalance = rewardTokenBalance();
         if (contractBalance == 0) return;
-        IERC20(i_rewardToken).approve(owner(), contractBalance);
-        IERC20(i_rewardToken).transfer(owner(), contractBalance);
+        IERC20(i_rewardToken).approve(msg.sender, contractBalance);
+        IERC20(i_rewardToken).transfer(msg.sender, contractBalance);
+        s_tokensThatCanBeWithdrawn = 0;
         emit Reward__Withdraw(contractBalance);
     }
 
@@ -234,7 +257,6 @@ contract Reward is Ownable, ReentrancyGuard {
         return i_factory;
     }
 
-
     function getDistributionType() external view returns (RewardFactory.DistributionType) {
         return i_distributionType;
     }
@@ -249,6 +271,10 @@ contract Reward is Ownable, ReentrancyGuard {
 
     function getEligibilityParameter() external view returns (address) {
         return i_eligibilityParameter;
+    }
+
+    function getTokensThatCanBeWithdrawn() external view returns (uint256) {
+        return s_tokensThatCanBeWithdrawn;
     }
     
     // Setter functions
