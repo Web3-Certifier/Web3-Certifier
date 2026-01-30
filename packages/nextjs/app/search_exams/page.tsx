@@ -31,8 +31,6 @@ const SearchExamsPage: React.FC = () => {
         fetchFeaturedExams();
     }, [chain?.id]);
 
-    console.log("featuredExamIds", featuredExamIds);
-
     /*//////////////////////////////////////////////////////////////
                           READ FROM CONTRACT
     //////////////////////////////////////////////////////////////*/

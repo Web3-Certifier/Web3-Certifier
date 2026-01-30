@@ -43,7 +43,7 @@ const ExamCard: React.FC<CardProps> = ({ className, id, searchTerm = "" }) => {
     const tokenAddress: string = wagmiReadFromContract({
         contractName: "Reward",
         contractAddress: rewardAddress,
-        functionName: "getTokenAddress",
+        functionName: "getRewardToken",
     }).data;
 
     const totalReward: bigint  = wagmiReadFromContract({
