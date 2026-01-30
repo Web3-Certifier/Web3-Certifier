@@ -59,6 +59,7 @@
     "zustand": "^4.1.2"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.1.6",
     "@trivago/prettier-plugin-sort-imports": "^4.1.1",
     "@types/elliptic": "^6",
     "@types/js-cookie": "^3",
