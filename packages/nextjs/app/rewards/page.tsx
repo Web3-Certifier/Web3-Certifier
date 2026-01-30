@@ -3,7 +3,7 @@
 import { wagmiReadFromContract } from "~~/hooks/wagmi/wagmiRead";
 import { useSearchParams } from "next/navigation";
 import { ZERO_ADDRESS } from "~~/constants";
-import { CreateReward, ManageReward, ErrorPage } from "./pages"
+import { CreateReward, ManageReward } from "./pages"
 import { useNonUndefinedAccount } from "~~/utils/NonUndefinedAccount";
 import { Spinner } from "~~/components";
 
@@ -44,8 +44,6 @@ const Page = () => {
             return <><NotOrganizerMessage /><CreateReward id={id} /></>
         else
             return <><NotOrganizerMessage /><ManageReward id={id} /></>
-    // else
-    //     return <ErrorPage id={id} chain={chain} message="You are not the organizer!" />
 }
 
 export default Page;
