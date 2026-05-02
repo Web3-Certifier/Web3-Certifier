@@ -81,7 +81,9 @@ export function wagmiWriteToContract() {
                         data: dataWithReferral as `0x${string}`,
                         value: params.value,
                         gas: params.gas ? params.gas : null,
-                        gasLimit: params.gas ? params.gas : null
+                        gasLimit: params.gas ? params.gas : null,
+                        // maxFeePerGas: 300_000_000_000n,
+                        // maxPriorityFeePerGas: 5_000_000_000n
                     } as any);
                 } catch (error) {
                     console.log("gas estimation failed", error);
