@@ -383,6 +383,18 @@ const Home = () => {
           </div>
         </div>
       </div>
+
+      {/* Donate Section */}
+      <div className="bg-base-100 text-white my-2">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <div className="text-base-content">
+            Support the development of Web3 Certifier by donating to our address:
+          </div>
+          <code className="px-4 py-2 rounded-lg text-sm break-all">
+            {process.env.NEXT_PUBLIC_FUNDING_ADDRESS}
+          </code>
+        </div>
+      </div>
     </div>
   );
 };
